@@ -19,6 +19,9 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://geocore:geocore_password@db:5432/geocore
+    volumes:
+      - ./data:/data
+    command: /data/bahia-blanca.mbtiles
     ports:
       - "3000:3000"
 

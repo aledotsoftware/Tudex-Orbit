@@ -25,22 +25,22 @@ const proj = ref('mercator');
 let map = null;
 
 onMounted(() => {
+  console.log('🗺️ GeoCore: Initializing Map...');
   map = new maplibregl.Map({
     container: 'map',
-    style: {
-      version: 8,
-      sources: {
-        'osm': { 
-          type: 'raster', 
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], 
-          tileSize: 256 
-        }
-      },
-      layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
-    },
+    style: '/style.json',
     center: [-62.275, -38.725],
     zoom: 12,
     antialias: true
+  });
+
+  map.on('load', () => {
+    console.log('✅ GeoCore: Map Loaded');
+    console.log('Sources:', map.getStyle().sources);
+  });
+
+  map.on('error', (e) => {
+    console.error('❌ GeoCore Error:', e);
   });
 });
 
