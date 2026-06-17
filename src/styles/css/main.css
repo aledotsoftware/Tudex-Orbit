@@ -840,6 +840,22 @@ a.item-group-title:hover {
   opacity: 1;
 }
 
+.zoom-layer:focus-visible,
+.zoom-layer-combobox:focus-visible {
+  outline: 2px solid var(--primary-color, #271688);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.zoom-layer, .zoom-layer-combobox {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .resize-legend-combobox {
   cursor: pointer;
   color: silver;
@@ -1409,6 +1425,13 @@ input:checked.switch+label:after {
 
 .basemap-selector .leaflet-control-layers-toggle {
   background-image: none !important;
+  border: none;
+  background-color: white;
+}
+
+.basemap-selector .leaflet-control-layers-toggle:focus-visible {
+  outline: 2px solid var(--primary-color, #271688);
+  outline-offset: 2px;
 }
 
 .basemap-selector .leaflet-control-layers-toggle::after {

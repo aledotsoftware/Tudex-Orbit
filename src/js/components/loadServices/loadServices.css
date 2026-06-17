@@ -112,6 +112,17 @@
   width: 15%;
   text-align: center;
   opacity: 0.6;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.loadservice-layer-img:focus-visible {
+  outline: 2px solid #271688;
+  outline-offset: 2px;
+  opacity: 1;
 }
 .loadservice-layer-img img {
   height: 20px;

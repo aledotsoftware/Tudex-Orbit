@@ -172,19 +172,13 @@ class ImpresorItemHTML extends Impresor {
     btn_options.id = "layer-options-" + item.nombre;
     btn_options.setAttribute("onClick", "event.stopPropagation()");
 
-    const btn_zoom = document.createElement("div");
+    const btn_zoom = document.createElement("button");
+    btn_zoom.type = "button";
     btn_zoom.className = "zoom-layer";
     btn_zoom.setAttribute("layername", item.nombre);
     btn_zoom.style.alignSelf = "center";
-    btn_zoom.setAttribute("role", "button");
-    btn_zoom.setAttribute("tabindex", "0");
     btn_zoom.setAttribute("aria-label", "Zoom a capa");
-    btn_zoom.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        btn_zoom.click();
-      }
-    });
+    btn_zoom.title = "Zoom a capa";
 
     const btn_zoom_icon = document.createElement("i");
     btn_zoom_icon.classList = "fas fa-search-plus";
@@ -467,10 +461,10 @@ class ImpresorCapasBaseHTML extends Impresor {
     var listaId = itemComposite.getId();
     // Only one basemap-selector
     if ($("div#basemap-selector>ul").length === 0) {
-      const baseMapsMenu = document.createElement("a");
+      const baseMapsMenu = document.createElement("button");
+      baseMapsMenu.type = "button";
       baseMapsMenu.classList = "leaflet-control-layers-toggle";
       baseMapsMenu.title = itemComposite.nombre;
-      baseMapsMenu.setAttribute("role", "button");
       baseMapsMenu.setAttribute("data-toggle", "collapse");
       baseMapsMenu.setAttribute("aria-expanded", "false");
       //baseMapsMenu.setAttribute('aria-controls', 'collapseExample');
@@ -3875,21 +3869,15 @@ class Menu_UI {
       "</span>";
     capa_title_div.append(capa_description_a);
 
-    let btn_zoom_layer = document.createElement("div");
+    let btn_zoom_layer = document.createElement("button");
+    btn_zoom_layer.type = "button";
     btn_zoom_layer.className = "zoom-layer-combobox";
     btn_zoom_layer.style = "align-self: center;";
     btn_zoom_layer.layername = title;
-    btn_zoom_layer.setAttribute("role", "button");
-    btn_zoom_layer.setAttribute("tabindex", "0");
     btn_zoom_layer.setAttribute("aria-label", "Zoom a capa");
+    btn_zoom_layer.title = "Zoom a capa";
     btn_zoom_layer.innerHTML =
-      "<i class='fas fa-search-plus' title='Zoom a capa' aria-hidden='true'></i>";
-    btn_zoom_layer.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        btn_zoom_layer.click();
-      }
-    });
+      "<i class='fas fa-search-plus' aria-hidden='true'></i>";
     btn_zoom_layer.addEventListener("click", function () {
       if (li.className === "capa list-group-item") {
         li.className = "capa list-group-item active";
@@ -4186,18 +4174,12 @@ class Menu_UI {
       // }
     };
 
-    let zoom_button = document.createElement("div");
+    let zoom_button = document.createElement("button");
+    zoom_button.type = "button";
     zoom_button.className = "loadservice-layer-img";
-    zoom_button.setAttribute("role", "button");
-    zoom_button.setAttribute("tabindex", "0");
     zoom_button.setAttribute("aria-label", "Zoom a capa");
-    zoom_button.innerHTML = `<i class="fas fa-search-plus" title="Zoom a capa" aria-hidden="true"></i>`;
-    zoom_button.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        zoom_button.click();
-      }
-    });
+    zoom_button.title = "Zoom a capa";
+    zoom_button.innerHTML = `<i class="fas fa-search-plus" aria-hidden="true"></i>`;
     zoom_button.onclick = function () {
       clickWMSLayer(layer, layer_item, fileName);
       let bounds = [

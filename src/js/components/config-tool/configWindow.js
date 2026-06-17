@@ -7,11 +7,12 @@ class configWindow {
     configWrapper.style = "top: 100px; left: 1000px; position: absolute;";
     configWrapper.innerHTML = app.configToolMain.name;
 
-    let btncloseConfig = document.createElement("a");
+    let btncloseConfig = document.createElement("button");
+    btncloseConfig.type = "button";
     btncloseConfig.id = "btnClose-config";
-    btncloseConfig.href = "javascript:void(0)";
-    btncloseConfig.style = "float:right; color:#676767; overflow-y:auto;";
-    btncloseConfig.innerHTML = '<i class="fa fa-times"></i>';
+    btncloseConfig.setAttribute("aria-label", "Cerrar ventana de configuración");
+    btncloseConfig.style = "float:right; color:#676767; overflow-y:auto; border:none; background:transparent; padding:0; cursor:pointer;";
+    btncloseConfig.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i>';
     btncloseConfig.onclick = () => {
       configWrapper.remove();
     };

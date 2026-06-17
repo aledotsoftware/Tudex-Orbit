@@ -15,3 +15,7 @@
 ## 2024-04-24 - Accessibility: ARIA labels on dynamic icon-only buttons
 **Learning:** When JavaScript dynamically injects elements (like a logout button after a successful login), developers often remember to add icon classes but forget the `aria-label` because the element doesn't exist in the static HTML file where accessibility linters usually run.
 **Action:** When auditing vanilla JavaScript code that builds DOM elements via `document.createElement`, specifically look for interactive elements (`button`, `a`) that only contain `innerHTML` with `<i>` or `<span>` icon tags. Ensure they receive an `setAttribute("aria-label", "...")` before being appended to the DOM.
+
+## 2024-05-01 - Testing dynamically injected components with Playwright
+**Learning:** When using Playwright to test individual UI components (like a modal or configuration window) that are dynamically injected into the DOM by a vanilla JS class, creating a complex HTML string directly in `page.goto("data:text/html,...")` can lead to evaluation errors or page crashes, especially if the component depends on global state or specific markup structures.
+**Action:** Instead of inline HTML data URIs, write a temporary HTML harness file to the local filesystem (e.g., `test_component.html`) and load it via the local development server (`http://localhost:3000/test_component.html`). This provides a stable environment for scripts and stylesheets to load and for Playwright to interact with the DOM predictably.
