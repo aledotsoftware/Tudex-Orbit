@@ -76,13 +76,18 @@
       font-size: 15px;
     }
     #search-input::placeholder { color: rgba(100, 255, 218, 0.4); }
+
+    #search-input:focus-visible, .btn:focus-visible {
+      outline: 2px solid #64FFDA;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
   <div id="map-container"></div>
 
   <div class="topbar">
-    <input id="search-input" type="text" placeholder="Buscar lugar..." />
+    <input id="search-input" type="text" placeholder="Buscar lugar..." aria-label="Buscar lugar" />
     <button class="btn" id="btn-projection">Cambiar Proyección</button>
     <button class="btn" id="btn-layer">Cargar Capa Local</button>
     <button class="btn" id="btn-3d">Vista 3D</button>
