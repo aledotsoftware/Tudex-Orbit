@@ -19,3 +19,6 @@
 ## 2024-05-01 - Testing dynamically injected components with Playwright
 **Learning:** When using Playwright to test individual UI components (like a modal or configuration window) that are dynamically injected into the DOM by a vanilla JS class, creating a complex HTML string directly in `page.goto("data:text/html,...")` can lead to evaluation errors or page crashes, especially if the component depends on global state or specific markup structures.
 **Action:** Instead of inline HTML data URIs, write a temporary HTML harness file to the local filesystem (e.g., `test_component.html`) and load it via the local development server (`http://localhost:3000/test_component.html`). This provides a stable environment for scripts and stylesheets to load and for Playwright to interact with the DOM predictably.
+## 2024-06-25 - Accessibility: Keyboard Navigation and ARIA Labels in Glassmorphism UI
+**Learning:** Glassmorphism and modern UI designs often strip default browser outlines (`outline: none`) for aesthetic reasons, which breaks keyboard accessibility. Inputs that lack explicit `<label>` tags also need `aria-label`s.
+**Action:** Always provide a complementary `:focus-visible` rule (e.g., `outline: 2px solid #64FFDA; outline-offset: 2px;`) that matches the design theme while restoring keyboard focus, and ensure isolated inputs have `aria-label`s.
