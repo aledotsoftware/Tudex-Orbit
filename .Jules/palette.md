@@ -19,3 +19,6 @@
 ## 2024-05-01 - Testing dynamically injected components with Playwright
 **Learning:** When using Playwright to test individual UI components (like a modal or configuration window) that are dynamically injected into the DOM by a vanilla JS class, creating a complex HTML string directly in `page.goto("data:text/html,...")` can lead to evaluation errors or page crashes, especially if the component depends on global state or specific markup structures.
 **Action:** Instead of inline HTML data URIs, write a temporary HTML harness file to the local filesystem (e.g., `test_component.html`) and load it via the local development server (`http://localhost:3000/test_component.html`). This provides a stable environment for scripts and stylesheets to load and for Playwright to interact with the DOM predictably.
+## 2025-03-09 - Keyboard Navigation in Frutiger Aero UI
+**Learning:** The application's Frutiger Aero/Glassmorphism theme relies heavily on `outline: none` to maintain its bubble aesthetic, which strips default browser focus indicators and impacts keyboard navigation.
+**Action:** When working with these themed inputs and buttons, always append an explicit `:focus-visible` state using a complementary neon color (e.g., `#64FFDA`) with an `outline-offset` to restore keyboard accessibility without breaking the glassmorphism aesthetic.
