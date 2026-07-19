@@ -1,0 +1,27 @@
+{
+  "appName": "Tudex Orbit",
+  "map": {
+    "styleUrl": "/style-osm.json",
+    "center": [-62.275, -38.725],
+    "zoom": 2,
+    "minZoom": 1,
+    "projection": "globe"
+  },
+  "styles": [
+    { "id": "osm", "label": "OpenStreetMap", "url": "/style-osm.json", "isLocal": false },
+    { "id": "carto-dark", "label": "Carto Dark Matter", "url": "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json", "isLocal": false },
+    { "id": "carto-light", "label": "Carto Positron", "url": "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", "isLocal": false }
+  ],
+
+  "layers": [
+    { "id": "world-building", "label": "Edificios", "color": "#d8d0c8" },
+    { "id": "world-road-motorway", "label": "Autopistas", "color": "#555555" },
+    { "id": "world-road-primary", "label": "Vías Primarias", "color": "#b0b0b0" },
+    { "id": "world-road-secondary", "label": "Vías Secundarias", "color": "#d0d0d0" },
+    { "id": "world-road-minor", "label": "Calles", "color": "#e8e8e8" },
+    { "id": "world-water", "label": "Agua", "color": "#c8d8e8" },
+    { "id": "world-park", "label": "Parques", "color": "#dde8dd" },
+    { "id": "world-boundary-country", "label": "Fronteras", "color": "#999999" }
+  ],
+  "footerText": "© Colaboradores de OpenStreetMap\nTudex Orbit v1.0"
+}

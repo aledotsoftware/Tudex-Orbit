@@ -1,125 +1,72 @@
+---
+
+# Tudex Orbit 🛰️
+
+**Tudex Orbit** es una consola de operaciones orbitales y monitoreo satelital soberano desarrollado por [Tudex Networks][], de código abierto y autogestionado. Permite rastrear la posición en tiempo real de satélites activos (principalmente radioaficionados y meteorológicos), predecir ventanas de paso sobre estaciones terrenas locales y consultar información técnica de radiofrecuencias.
+
+Está diseñado como una alternativa libre e independiente para el seguimiento espacial: cualquier organización, universidad o radioaficionado puede desplegarlo en su propia infraestructura y operar sin depender de servicios web privativos externos.
 
 ---
 
-# Maps Tudex
+# GeoCore Orbit Engine 🌍
 
-**Maps Tudex** es un visor de mapas soberano desarrollado por [Tudex Networks][], de código abierto y sin dependencias de terceros propietarios. Permite visualizar, consultar y publicar cualquier información geoetiquetada de forma autónoma.
-
-Está diseñado como una alternativa soberana a Google Maps: cualquier organización o individuo puede desplegarlo en su propia infraestructura y mostrarlo sin depender de servicios externos.
-Aquí tienes el README completo para tu proyecto, estructurado con una arquitectura basada en soberanía tecnológica y autogestión de datos.
-
-*Nota técnica:* Aunque mencionaste Leaflet, para soportar un "globo 3D" nativo y cambio fluido de proyecciones, **MapLibre GL JS** u **OpenLayers** son opciones arquitectónicamente superiores para el frontend. El stack propuesto refleja esto.
-
----
-
-# GeoCore Map Engine 🌍
-
-GeoCore es una plataforma cartográfica soberana de alto rendimiento. Diseñada para reemplazar dependencias de terceros (como Google Maps), renderiza, sirve y visualiza teselas (tiles) personalizadas a partir de datos de OpenStreetMap (OSM). Soporta múltiples proyecciones, herramientas de medición precisas y un sistema de capas colaborativas impulsadas por la comunidad.
+GeoCore Orbit es una plataforma cartográfica y de cálculo orbital soberana de alto rendimiento. Diseñada para operar de forma autónoma, renderiza mapas globales, calcula eficientemente trayectorias orbitales en el cliente a partir de datos TLE en tiempo real, y provee herramientas avanzadas de instrumentación para radioaficionados y estaciones de escucha.
 
 ## 🚀 Características Principales
 
-* **Servidor de Teselas Propio:** Generación y servicio de Vector Tiles (MVT) directamente desde nuestra infraestructura, garantizando control total del diseño y rendimiento.
+* **Rastreador de Constelaciones Completo:** Visualización en tiempo real de todos los satélites catalogados orbitando la Tierra de manera simultánea en WebGL.
 * **Proyecciones Dinámicas:**
-* Mercator (EPSG:3857 - Estándar web).
-* Cilíndrica Equidistante (EPSG:4326 - Flat/Plate Carrée).
-* Globo 3D (Estilo Google Earth).
-* Soporte para proyecciones personalizadas (Proj4js).
+  * Mercator (Estándar web).
+  * Globo 3D (Visión espacial realista).
+* **Cálculo Orbital Local (Zero-Server):** Propagación de órbitas utilizando `satellite.js` basado en el modelo SGP4/SDP4 de la USAF en tiempo real en el navegador del usuario.
+* **Cono de Visibilidad (Footprint):** Renderizado de la huella de cobertura geográfica en vivo de cada satélite con isolíneas de elevación dinámica (0°, 10°, 30°).
+* **Predicción de Pases:** Cálculo instantáneo de ventanas de paso, tiempo de duración e inclinación máxima para cualquier coordenada terrestre (Estación Terrena).
+* **Frecuencias de Radioaficionados:** Consulta y despliegue de frecuencias de Uplink, Downlink y modos de modulación (FM, GFSK, SSB/CW).
 
-
-* **Herramientas GIS Integradas:**
-* Medición de distancias (líneas y rutas).
-* Medición de áreas (polígonos).
-* Marcadores y ubicaciones personalizadas guardadas en el perfil del usuario.
-
-
-* **Buscador Integrado (Geocoding):** Búsqueda de direcciones y Puntos de Interés (POIs) utilizando un motor propio (basado en Nominatim o Pelias).
-* **Gestión de Capas y Comunidad:**
-* Carga de datos de usuario (GeoJSON, KML, GPX).
-* Directorio de capas comunitarias (ej. tráfico, zonas de calor, rutas de senderismo).
-* Activación/desactivación de capas en tiempo real.
 
 
 
 ## 🏗 Arquitectura del Sistema
 
-El proyecto se divide en tres capas principales (Soberanía de Datos, Backend de Servicio y Frontend):
+El proyecto se divide en tres capas principales:
 
-1. **Capa de Datos (Base de Datos & Parsing):**
-* **PostgreSQL + PostGIS:** Almacenamiento espacial de alto rendimiento.
-* **Osm2pgsql:** Herramienta para importar el `planet.osm.pbf` a la base de datos PostGIS.
+1. **Capa de Datos y Teselas:**
+   * **Martin Vector Tile Server:** Servidor escrito en Rust que sirve teselas vectoriales locales (`.mbtiles`) a la interfaz de MapLibre GL.
+   * **Planetiler:** Herramienta de alta velocidad para generar archivos `.mbtiles` a partir de mapas globales de OpenStreetMap.
 
+2. **Capa de Frontend y Cálculo:**
+   * **React + Vite + TypeScript:** Entorno de desarrollo moderno y rápido.
+   * **MapLibre GL JS:** Motor de renderizado cartográfico que utiliza WebGL/WebGPU para mostrar el mapa en 2D o Globo 3D con gran rendimiento.
+   * **Satellite.js:** Librería matemática de dinámica celeste que propaga órbitas basándose en TLEs y el modelo SGP4.
 
-2. **Capa de Servicio (Tile Server & API):**
-* **Martin / TileServer GL:** Servidor ultra-rápido (escrito en Rust o Node) para servir las teselas vectoriales (MVT) al vuelo desde PostGIS.
-* **Node.js / Express (API REST):** Gestiona la autenticación, subida de archivos (GeoJSON), buscador (forward/reverse geocoding) y el CRUD de las capas comunitarias.
-
-
-3. **Capa de Visualización (Frontend):**
-* **MapLibre GL JS:** Motor de renderizado WebGL (Soporta Globo 3D nativo y aceleración por hardware, superando a Leaflet en este caso de uso).
-* **Turf.js:** Motor de análisis espacial en el cliente (para cálculos de mediciones de distancias y áreas en tiempo real).
-* **Vue.js / Nuxt o React:** Framework de UI para los menús, buscador y gestión de capas.
-
-
-
-## ⚙️ Requisitos de Infraestructura (Bare-Metal/Self-Hosted)
-
-* Servidor Linux (Ubuntu/Debian o entorno custom como éterOS).
-* Mínimo 64GB RAM y almacenamiento NVMe (1TB+ recomendado para OSM Planet + índices).
-* Docker y Docker Compose (opcional para despliegue modular).
+---
 
 ## 🛠 Instalación y Configuración (Guía Rápida)
 
-### 1. Preparar la Base de Datos Spatial
+### 1. Iniciar los contenedores del sistema (Martin y Frontend)
 
 ```bash
-# Iniciar contenedor PostGIS
-docker run --name geocore-db -e POSTGRES_PASSWORD=secret -d postgis/postgis
-
+docker compose up -d --build
 ```
 
-### 2. Importar datos de OpenStreetMap
+Esto compilará y ejecutará:
+* **geocore-martin:** Servidor de mapas en el puerto `3000`.
+* **geocore-web:** Interfaz de usuario React en el puerto `51744` (redirige a `3000` interno).
 
+### 2. Generar o descargar teselas MBTiles (Opcional)
+
+Si necesitas generar mapas locales personalizados:
 ```bash
-# Descargar extracto o planeta completo (ejemplo: Argentina)
-wget http://download.geofabrik.de/south-america/argentina-latest.osm.pbf
-
-# Importar con osm2pgsql a PostGIS
-osm2pgsql -d geocore -U postgres -H localhost -W --create --slim -G --hstore argentina-latest.osm.pbf
-
+docker compose --profile generate up -d planetiler
 ```
 
-### 3. Levantar el Servidor de Teselas (Martin)
+---
 
-```bash
-# Martin autodetectará las tablas espaciales en PostGIS y servirá los endpoints MVT
-docker run -p 3000:3000 -e DATABASE_URL=postgres://postgres:secret@localhost:5432/geocore maplibre/martin
+## 📝 Roadmap de Desarrollo
 
-```
-
-### 4. Inicializar el Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-
-```
-
-## 🗺 Funciones del Frontend (MapLibre + Turf.js)
-
-* **Cambio de Proyección:** Implementado mediante `map.setProjection({ name: 'globe' })` o `'mercator'`.
-* **Carga de GeoJSON:** Uso de la API File para leer blobs locales y añadirlos como `map.addSource()`.
-* **Estilos Custom:** Los estilos base (fondos oscuros, topografía) se definen en un archivo `style.json` servido desde nuestro backend, apuntando a nuestro propio Tile Server.
-
-## 🤝 Contribución de Capas (Comunidad)
-
-Los usuarios pueden subir sus datasets espaciales a través de la API. El backend valida la geometría, la sanitiza y la indexa en PostGIS bajo el esquema `community_layers`. Estas capas quedan disponibles en el endpoint `/api/v1/layers` para que cualquier usuario pueda activarlas en su visor.
-
-## 📝 Roadmap
-
-* [ ] Configuración de PostGIS y carga de OSM.
-* [ ] Renderizado base con MapLibre GL (Proyección Mercator y Globo).
-* [ ] Integración de Turf.js para herramientas de dibujo poligonal y métricas.
-* [ ] Motor de búsqueda local (Pelias/Nominatim).
-* [ ] Dashboard de carga de datos para usuarios (Soporte GeoJSON/KML).
-* [ ] Soporte PWA para caché offline de tiles específicos.
+* [x] Conversión e integración completa a **Tudex Orbit**.
+* [x] Implementación de propagador orbital SGP4 local en cliente.
+* [x] Visualización interactiva en tiempo real de toda la constelación satelital en el mapa.
+* [x] Modelado de huellas de cobertura (footprint) dinámicas con isolíneas.
+* [x] Panel de instrumentación y calculadora de pases terrestres.
+* [ ] Soporte para comandos CAT para control de rotores de antena físicos.

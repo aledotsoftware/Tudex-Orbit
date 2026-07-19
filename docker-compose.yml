@@ -1,48 +1,10 @@
 services:
-  db:
-    image: postgis/postgis:15-3.3
-    container_name: geocore-db
-    environment:
-      POSTGRES_USER: geocore
-      POSTGRES_PASSWORD: geocore_password
-      POSTGRES_DB: geocore
-    volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - geocore_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-  martin:
-    image: maplibre/martin
-    container_name: geocore-martin
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgresql://geocore:geocore_password@db:5432/geocore
-    volumes:
-      - ./data:/data
-    command: /data/bahia-blanca.mbtiles
-    ports:
-      - "3000:3000"
-
-  api:
-    build: ./backend
-    container_name: geocore-api
-    depends_on:
-      - db
-    environment:
-      - DB_URL=postgresql://geocore:geocore_password@db:5432/geocore
-    ports:
-      - "4000:4000"
-
   web:
-    build: ./frontend
+    build: ./tudex-orbit
     container_name: geocore-web
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+    volumes:
+      - ./tudex-orbit:/app
+      - /app/node_modules
     ports:
-      - "5173:3000"
-    environment:
-      - NUXT_PUBLIC_API_URL=http://localhost:4000
-      - NUXT_PUBLIC_TILE_URL=http://localhost:3000
-
-volumes:
-  geocore_data:
+      - "51744:3000"
