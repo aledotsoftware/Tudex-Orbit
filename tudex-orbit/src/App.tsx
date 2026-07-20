@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as satellite from 'satellite.js';
@@ -6,6 +7,14 @@ import {
   Search, Menu, ZoomIn, ZoomOut, Compass,
   MapPin, ChevronLeft, Globe, Sun, Moon, Activity, Wifi, BookOpen, FileText
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 interface AppConfig {
   appName: string;
@@ -1121,346 +1130,348 @@ export default function App() {
             </div>
             <span className="text-sm font-semibold tracking-tight text-sidebar-foreground cyber-glow">{config.appName}</span>
           </div>
-          <button onClick={toggleTheme}
-            className="p-1.5 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors mr-1 cursor-pointer"
+          <Button onClick={toggleTheme} variant="ghost" size="icon"
+            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer mr-1"
             title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-          <button onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors cursor-pointer">
+          </Button>
+          <Button onClick={() => setSidebarOpen(false)} variant="ghost" size="icon"
+            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
             <ChevronLeft size={18} />
-          </button>
+          </Button>
         </div>
 
-        {/* Selector de Pestañas (Tabs) */}
-        <div className="grid grid-cols-2 gap-1 px-4 py-2 border-b border-sidebar-border bg-sidebar/20">
-          <button
-            onClick={() => {
-              setActiveSidebarTab('monitoring');
-              setSelectedArticleId(null);
-            }}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-              activeSidebarTab === 'monitoring'
-                ? 'bg-sidebar-accent text-sidebar-foreground shadow-sm'
-                : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'
-            }`}
-          >
-            <Activity size={14} />
-            <span>Monitoreo</span>
-          </button>
-          <button
-            onClick={() => setActiveSidebarTab('library')}
-            className={`flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-              activeSidebarTab === 'library'
-                ? 'bg-sidebar-accent text-sidebar-foreground shadow-sm'
-                : 'text-sidebar-foreground/60 hover:text-sidebar-foreground'
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Biblioteca</span>
-          </button>
-        </div>
-
-        {/* Search */}
-        {activeSidebarTab === 'monitoring' && (
-          <div className="px-4 py-3 border-b border-sidebar-border">
-            <div className="flex items-center gap-2 bg-sidebar text-sidebar-foreground border border-sidebar-border rounded-md px-3 py-1.5 text-sm shadow-sm transition-colors focus-within:ring-1 focus-within:ring-sidebar-ring focus-within:border-sidebar-border">
-              <Search size={14} className="text-sidebar-foreground/50 shrink-0" />
-              <input type="text" placeholder="Buscar satélite..."
-                value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-xs text-sidebar-foreground outline-none placeholder:text-sidebar-foreground/40 font-normal" />
-            </div>
+        {/* Selector de Pestañas (Tabs) con Shadcn */}
+        <Tabs value={activeSidebarTab} onValueChange={(val: string) => {
+          setActiveSidebarTab(val as 'monitoring' | 'library');
+          setSelectedArticleId(null);
+        }} className="flex-1 flex flex-col overflow-hidden">
+          
+          <div className="px-4 py-2 border-b border-sidebar-border bg-sidebar/20">
+            <TabsList className="grid grid-cols-2 w-full">
+              <TabsTrigger value="monitoring" className="text-xs gap-1.5 font-semibold">
+                <Activity size={14} />
+                <span>Monitoreo</span>
+              </TabsTrigger>
+              <TabsTrigger value="library" className="text-xs gap-1.5 font-semibold">
+                <BookOpen size={14} />
+                <span>Biblioteca</span>
+              </TabsTrigger>
+            </TabsList>
           </div>
-        )}
 
-        {/* Panel (Estilo Google Maps: Ficha o Listado de Búsqueda / Biblioteca) */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5 custom-scrollbar bg-transparent">
-          {activeSidebarTab === 'library' ? (
-            selectedArticleId ? (
-              // Vista de Lector de Artículo
-              (() => {
-                const article = ARTICLES.find(a => a.id === selectedArticleId);
-                if (!article) return null;
-                return (
-                  <div className="space-y-4">
-                    <button onClick={() => setSelectedArticleId(null)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-sidebar-primary hover:underline cursor-pointer">
-                      <ChevronLeft size={16} /> Volver a biblioteca
-                    </button>
-                    <div className="rounded-lg glass-card p-4 shadow-sm space-y-3 pb-6">
-                      <div>
-                        <span className="text-[9px] font-bold text-sidebar-primary uppercase tracking-wider bg-sidebar-primary/10 px-2 py-0.5 rounded-md border border-sidebar-primary/20">{article.category}</span>
-                        <h4 className="text-sm font-bold tracking-tight text-sidebar-foreground mt-2">{article.title}</h4>
-                      </div>
-                      <div className="border-t border-sidebar-border/30 pt-3">
-                        {article.content}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()
-            ) : (
-              // Listado de Artículos
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Biblioteca Técnica</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Análisis y evolución de las telecomunicaciones satelitales amateur.</p>
-                </div>
-                <div className="space-y-2.5">
-                  {ARTICLES.map(article => (
-                    <button key={article.id} onClick={() => setSelectedArticleId(article.id)}
-                      className="w-full flex items-start gap-3.5 p-3.5 rounded-lg glass-card text-sidebar-foreground/80 transition-all text-left group cursor-pointer">
-                      <div className="bg-sidebar-primary/10 text-sidebar-primary p-2 rounded-md border border-sidebar-primary/20 shrink-0 mt-0.5 group-hover:bg-sidebar-primary group-hover:text-sidebar-primary-foreground transition-all">
-                        <FileText size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="text-[9px] font-bold text-sidebar-primary uppercase tracking-wider">{article.category}</div>
-                        <span className="text-xs font-bold text-sidebar-foreground group-hover:text-sidebar-primary transition-colors block leading-tight">{article.title}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+          <TabsContent value="monitoring" className="flex-1 flex flex-col overflow-hidden m-0 p-0">
+            {/* Search */}
+            <div className="px-4 py-3 border-b border-sidebar-border flex items-center gap-2">
+              <div className="relative w-full">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 pointer-events-none z-10" />
+                <Input type="text" placeholder="Buscar satélite..."
+                  value={searchQuery} onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-8 text-xs bg-sidebar text-sidebar-foreground border-sidebar-border w-full" />
               </div>
-            )
-          ) : selectedSatellite ? (
-            // Ficha de Detalles Estilo Google Maps
-            (() => {
-              const sat = satellitesData.find(s => s.id === selectedSatellite);
-              const pos = satellitePositions[selectedSatellite];
-              if (!sat) return null;
-              
-              return (
-                <div className="space-y-4">
-                  {/* Botón Volver */}
-                  <button onClick={() => setSelectedSatellite(null)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-sidebar-primary hover:underline cursor-pointer">
-                    <ChevronLeft size={16} /> Volver al listado
-                  </button>
+            </div>
 
-                  <div className="rounded-lg glass-card overflow-hidden shadow-sm space-y-3.5 pb-4">
-                    <img src={sat.image} alt={sat.name}
-                      className="w-full h-32 object-cover border-b border-sidebar-border shadow-sm bg-muted" />
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-5">
+                {selectedSatellite ? (
+                  // Ficha de Detalles Estilo Google Maps
+                  (() => {
+                    const sat = satellitesData.find(s => s.id === selectedSatellite);
+                    const pos = satellitePositions[selectedSatellite];
+                    if (!sat) return null;
                     
-                    <div className="px-3.5 space-y-3">
-                      <div>
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <div className="text-[10px] font-bold text-sidebar-primary uppercase tracking-wider">{sat.category}</div>
-                            <h4 className="text-sm font-bold tracking-tight text-sidebar-foreground">{sat.name}</h4>
+                    return (
+                      <div className="space-y-4">
+                        {/* Botón Volver */}
+                        <Button onClick={() => setSelectedSatellite(null)} variant="link" size="sm"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-sidebar-primary p-0 h-auto cursor-pointer hover:no-underline">
+                          <ChevronLeft size={16} /> Volver al listado
+                        </Button>
+
+                        <Card className="overflow-hidden border-sidebar-border bg-sidebar/20 shadow-sm">
+                          <img src={sat.image} alt={sat.name}
+                            className="w-full h-32 object-cover border-b border-sidebar-border shadow-sm bg-muted" />
+                          
+                          <div className="p-3.5 space-y-3.5">
+                            <div>
+                              <div className="flex justify-between items-start gap-2">
+                                <div>
+                                  <div className="text-[10px] font-bold text-sidebar-primary uppercase tracking-wider">{sat.category}</div>
+                                  <CardTitle className="text-sm font-bold tracking-tight text-sidebar-foreground">{sat.name}</CardTitle>
+                                </div>
+                                {(() => {
+                                  const isVisible = satelliteVisible[sat.id];
+                                  const nextPass = nextPassTimes[sat.id];
+                                  if (isVisible) {
+                                    return (
+                                      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/20">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        En el cielo
+                                      </Badge>
+                                    );
+                                  } else if (nextPass) {
+                                    const diffMs = nextPass.getTime() - Date.now();
+                                    const diffMins = Math.round(diffMs / 1000 / 60);
+                                    const displayTime = diffMins < 60 
+                                      ? `${diffMins} min` 
+                                      : `${Math.floor(diffMins / 60)}h ${diffMins % 60}m`;
+                                    return (
+                                      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/20" title={`Pasa a las ${nextPass.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                        Pasa en {displayTime}
+                                      </Badge>
+                                    );
+                                  } else {
+                                    return (
+                                      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-muted text-muted-foreground border-muted-foreground/10">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                                        Invisible
+                                      </Badge>
+                                    );
+                                  }
+                                })()}
+                              </div>
+                            </div>
+                            
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">{sat.description}</p>
+                            
+                            {/* Telemetría en Vivo */}
+                            {pos && (
+                              <Card className="border-sidebar-border bg-sidebar/40 p-2.5 space-y-1.5">
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                  <Activity size={12} className="text-sidebar-primary" />
+                                  <span>Telemetría en Vivo</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[11px]">
+                                  <div>Lat: <span className="font-semibold text-sidebar-foreground">{pos.lat.toFixed(4)}°</span></div>
+                                  <div>Lng: <span className="font-semibold text-sidebar-foreground">{pos.lng.toFixed(4)}°</span></div>
+                                  <div>Altitud: <span className="font-semibold text-sidebar-foreground">{pos.alt.toFixed(0)} km</span></div>
+                                  <div>Velocidad: <span className="font-semibold text-sidebar-foreground">{pos.speed.toLocaleString()} km/h</span></div>
+                                </div>
+                              </Card>
+                            )}
+
+                            {/* Canales de Comunicación */}
+                            <Card className="border-sidebar-border bg-sidebar/40 p-2.5 space-y-1.5">
+                              <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                <Wifi size={12} className="text-sidebar-primary" />
+                                <span>Frecuencias de Radio</span>
+                              </div>
+                              <div className="space-y-1 text-[11px]">
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Uplink (Subida):</span>
+                                  <span className="font-semibold text-sidebar-foreground">{sat.uplink}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Downlink (Bajada):</span>
+                                  <span className="font-semibold text-sidebar-foreground">{sat.downlink}</span>
+                                </div>
+                                <Separator className="my-1.5 bg-sidebar-border/30" />
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Modulación:</span>
+                                  <span className="font-semibold text-sidebar-foreground">{sat.mode}</span>
+                                </div>
+                              </div>
+                            </Card>
+
+                            {/* Próximos Pasos */}
+                            <div>
+                              <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
+                                <Compass size={12} className="text-sidebar-primary" />
+                                <span>Próximos Pasos (24h)</span>
+                              </div>
+                              {satellitePasses.length > 0 ? (
+                                <div className="space-y-1.5 text-[11px]">
+                                  {satellitePasses.map((pass, i) => (
+                                    <Card key={i} className="flex justify-between items-center p-2 border-sidebar-border/50 bg-sidebar/20">
+                                      <span className="font-medium text-sidebar-foreground">
+                                        {pass.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} hs
+                                      </span>
+                                      <span className="text-muted-foreground text-[10px]">
+                                        {pass.duration} min (Elev: {pass.maxElevation}°)
+                                      </span>
+                                    </Card>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-muted-foreground text-center p-2 rounded bg-sidebar/30 border border-dashed border-sidebar-border">
+                                  No se detectaron pases visibles en las próximas 24 horas.
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          {(() => {
-                            const isVisible = satelliteVisible[sat.id];
-                            const nextPass = nextPassTimes[sat.id];
-                            if (isVisible) {
-                              return (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/20">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                  En el cielo
-                                </span>
-                              );
-                            } else if (nextPass) {
-                              const diffMs = nextPass.getTime() - Date.now();
-                              const diffMins = Math.round(diffMs / 1000 / 60);
-                              const displayTime = diffMins < 60 
-                                ? `${diffMins} min` 
-                                : `${Math.floor(diffMins / 60)}h ${diffMins % 60}m`;
-                              return (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/20" title={`Pasa a las ${nextPass.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}>
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                  Pasa en {displayTime}
-                                </span>
-                              );
-                            } else {
-                              return (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-muted text-muted-foreground border-muted-foreground/10">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
-                                  Invisible
-                                </span>
-                              );
-                            }
-                          })()}
-                        </div>
+                        </Card>
                       </div>
-                      
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">{sat.description}</p>
-                      
-                      {/* Telemetría en Vivo */}
-                      {pos && (
-                        <div className="rounded-md glass-card p-2.5 space-y-1.5">
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                            <Activity size={12} className="text-sidebar-primary" />
-                            <span>Telemetría en Vivo</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[11px]">
-                            <div>Lat: <span className="font-semibold text-sidebar-foreground">{pos.lat.toFixed(4)}°</span></div>
-                            <div>Lng: <span className="font-semibold text-sidebar-foreground">{pos.lng.toFixed(4)}°</span></div>
-                            <div>Altitud: <span className="font-semibold text-sidebar-foreground">{pos.alt.toFixed(0)} km</span></div>
-                            <div>Velocidad: <span className="font-semibold text-sidebar-foreground">{pos.speed.toLocaleString()} km/h</span></div>
-                          </div>
+                    );
+                  })()
+                ) : (
+                  // Listado de Resultados de Búsqueda
+                  <div className="space-y-4">
+                    {/* Panel de Control de Constelación y Observador */}
+                    <Card className="border-sidebar-border bg-sidebar/20 p-3.5 space-y-3.5 shadow-sm">
+                      <div className="flex items-center justify-between border-b border-sidebar-border/30 pb-2">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-sidebar-foreground">
+                          <Activity size={14} className="text-sidebar-primary" />
+                          <span>Constelación Global</span>
+                        </div>
+                        <Switch checked={showAllSatellites} onCheckedChange={setShowAllSatellites} />
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-sidebar-foreground">
+                          <MapPin size={14} className="text-sidebar-primary animate-pulse" />
+                          <span>Estación Terrestre (Observador)</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
+                          <div>Lat: <span className="font-medium text-sidebar-foreground">{observerCoords[1].toFixed(4)}°</span></div>
+                          <div>Lng: <span className="font-medium text-sidebar-foreground">{observerCoords[0].toFixed(4)}°</span></div>
+                        </div>
+                        <Button onClick={getUserLocation} variant="outline" size="sm"
+                          className="w-full text-xs font-medium cursor-pointer flex items-center justify-center gap-1.5 h-8">
+                          <Compass size={12} /> Detectar mi ubicación
+                        </Button>
+                        <p className="text-[10px] text-muted-foreground/80 leading-normal text-center">
+                          Haz clic en el mapa para fijar manualmente el punto de observación.
+                        </p>
+                      </div>
+                    </Card>
+
+                    {/* Listado de Satélites */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Satélites Disponibles ({filteredSatellites.length})</p>
+                      </div>
+                      {filteredSatellites.length > 0 ? (
+                        <div className="space-y-2">
+                          {sortedFilteredSatellites.map(sat => {
+                            const isSelected = selectedSatellite === sat.id;
+                            const isVisible = satelliteVisible[sat.id];
+                            const pos = satellitePositions[sat.id];
+                            const nextPass = nextPassTimes[sat.id];
+                            
+                            return (
+                              <Card key={sat.id} onClick={() => selectSatellite(sat.id)}
+                                className={`cursor-pointer w-full flex items-start gap-3 p-3 transition-all text-left ${
+                                  isSelected 
+                                    ? 'bg-sidebar-primary/20 border-primary/45 text-sidebar-foreground shadow-sm cyber-border-glow'
+                                    : 'hover:bg-sidebar-accent/50 border-sidebar-border/60 bg-sidebar/10'
+                                }`}>
+                                <img src={sat.image} alt={sat.name} className="w-12 h-12 rounded object-cover border border-sidebar-border/60 bg-muted shrink-0 shadow-sm" />
+                                <div className="flex-1 min-w-0 space-y-1">
+                                  <div className="flex items-center justify-between gap-1.5">
+                                    <span className="text-xs font-bold text-sidebar-foreground truncate">{sat.name}</span>
+                                    {(() => {
+                                      if (isVisible) {
+                                        return (
+                                          <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/20">
+                                            <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                            En el cielo
+                                          </Badge>
+                                        );
+                                      } else if (nextPass) {
+                                        const diffMs = nextPass.getTime() - Date.now();
+                                        const diffMins = Math.round(diffMs / 1000 / 60);
+                                        const displayTime = diffMins < 60 
+                                          ? `${diffMins} min` 
+                                          : `${Math.floor(diffMins / 60)}h ${diffMins % 60}m`;
+                                        return (
+                                          <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/20" title={`Pasa a las ${nextPass.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}>
+                                            <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
+                                            Pasa en {displayTime}
+                                          </Badge>
+                                        );
+                                      } else {
+                                        return (
+                                          <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-bold flex items-center gap-1 shrink-0 bg-muted text-muted-foreground border-muted-foreground/10">
+                                            <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                                            Invisible
+                                          </Badge>
+                                        );
+                                      }
+                                    })()}
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground line-clamp-1">{sat.description}</p>
+                                  <div className="text-[9px] text-muted-foreground/80 flex items-center gap-2">
+                                    <span className="font-semibold text-sidebar-primary">{sat.category}</span>
+                                    {pos && <span>• {pos.alt.toFixed(0)} km</span>}
+                                  </div>
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground text-center p-6 border border-dashed border-sidebar-border rounded-lg bg-sidebar/20">
+                          No se encontraron satélites que coincidan con la búsqueda.
                         </div>
                       )}
-
-                      {/* Canales de Comunicación */}
-                      <div className="rounded-md glass-card p-2.5 space-y-1.5">
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                          <Wifi size={12} className="text-sidebar-primary" />
-                          <span>Frecuencias de Radio</span>
-                        </div>
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Uplink (Subida):</span>
-                            <span className="font-semibold text-sidebar-foreground">{sat.uplink}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Downlink (Bajada):</span>
-                            <span className="font-semibold text-sidebar-foreground">{sat.downlink}</span>
-                          </div>
-                          <div className="flex justify-between border-t border-sidebar-border/30 pt-1 mt-1">
-                            <span className="text-muted-foreground">Modulación:</span>
-                            <span className="font-semibold text-sidebar-foreground">{sat.mode}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Próximos Pasos */}
-                      <div>
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
-                          <Compass size={12} className="text-sidebar-primary" />
-                          <span>Próximos Pasos (24h)</span>
-                        </div>
-                        {satellitePasses.length > 0 ? (
-                          <div className="space-y-1.5 text-[11px]">
-                            {satellitePasses.map((pass, i) => (
-                              <div key={i} className="flex justify-between items-center p-1.5 rounded glass-card">
-                                <span className="font-medium text-sidebar-foreground">
-                                  {pass.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} hs
-                                </span>
-                                <span className="text-muted-foreground text-[10px]">
-                                  {pass.duration} min (Elev: {pass.maxElevation}°)
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-[10px] text-muted-foreground text-center p-2 rounded bg-sidebar/30 border border-dashed border-sidebar-border">
-                            No se detectaron pases visibles en las próximas 24 horas.
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })()
-          ) : (
-            // Listado de Resultados de Búsqueda
-            <div className="space-y-4">
-              {/* Panel de Control de Constelación y Observador */}
-              <div className="rounded-lg glass-card p-3.5 space-y-3.5">
-                <div className="flex items-center justify-between border-b border-sidebar-border/30 pb-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-sidebar-foreground">
-                    <Activity size={14} className="text-sidebar-primary" />
-                    <span>Constelación Global</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked={showAllSatellites} onChange={e => setShowAllSatellites(e.target.checked)} className="sr-only peer" />
-                    <div className="w-7 h-4 bg-muted/65 peer-focus:outline-none rounded-full peer dark:bg-muted/30 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-primary"></div>
-                  </label>
-                </div>
-
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-sidebar-foreground">
-                    <MapPin size={14} className="text-sidebar-primary animate-pulse" />
-                    <span>Estación Terrestre (Observador)</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                    <div>Lat: <span className="font-medium text-sidebar-foreground">{observerCoords[1].toFixed(4)}°</span></div>
-                    <div>Lng: <span className="font-medium text-sidebar-foreground">{observerCoords[0].toFixed(4)}°</span></div>
-                  </div>
-                  <button onClick={getUserLocation}
-                    className="w-full py-1.5 rounded-md border border-input bg-background hover:bg-accent text-xs font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5">
-                    <Compass size={12} /> Detectar mi ubicación
-                  </button>
-                  <p className="text-[10px] text-muted-foreground/80 leading-normal text-center">
-                    Haz clic en el mapa para fijar manualmente el punto de observación.
-                  </p>
-                </div>
-              </div>
-
-              {/* Listado de Satélites */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center mb-1">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Satélites Disponibles ({filteredSatellites.length})</p>
-                </div>
-                {filteredSatellites.length > 0 ? (
-                  <div className="space-y-2">
-                    {sortedFilteredSatellites.map(sat => {
-                      const isSelected = selectedSatellite === sat.id;
-                      const isVisible = satelliteVisible[sat.id];
-                      const pos = satellitePositions[sat.id];
-                      const nextPass = nextPassTimes[sat.id];
-                      
-                      return (
-                        <button key={sat.id} onClick={() => selectSatellite(sat.id)}
-                          className={`w-full flex items-start gap-3 p-3 rounded-lg transition-all text-left group cursor-pointer ${
-                            isSelected 
-                              ? 'bg-sidebar-primary/20 border border-primary/45 text-sidebar-foreground shadow-sm cyber-border-glow'
-                              : 'glass-card text-sidebar-foreground/80 hover:border-sidebar-border/60'
-                          }`}>
-                          <img src={sat.image} alt={sat.name} className="w-12 h-12 rounded object-cover border border-sidebar-border/60 bg-muted shrink-0 shadow-sm" />
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="flex items-center justify-between gap-1.5">
-                              <span className="text-xs font-bold text-sidebar-foreground truncate">{sat.name}</span>
-                              {(() => {
-                                if (isVisible) {
-                                  return (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/20">
-                                      <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                                      En el cielo
-                                    </span>
-                                  );
-                                } else if (nextPass) {
-                                  const diffMs = nextPass.getTime() - Date.now();
-                                  const diffMins = Math.round(diffMs / 1000 / 60);
-                                  const displayTime = diffMins < 60 
-                                    ? `${diffMins} min` 
-                                    : `${Math.floor(diffMins / 60)}h ${diffMins % 60}m`;
-                                  return (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/20" title={`Pasa a las ${nextPass.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}>
-                                      <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse" />
-                                      Pasa en {displayTime}
-                                    </span>
-                                  );
-                                } else {
-                                  return (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0 border bg-muted text-muted-foreground border-muted-foreground/10">
-                                      <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                                      Invisible
-                                    </span>
-                                  );
-                                }
-                              })()}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground line-clamp-1">{sat.description}</p>
-                            <div className="text-[9px] text-muted-foreground/80 flex items-center gap-2">
-                              <span className="font-semibold text-sidebar-primary">{sat.category}</span>
-                              {pos && <span>• {pos.alt.toFixed(0)} km</span>}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-xs text-muted-foreground text-center p-6 border border-dashed border-sidebar-border rounded-lg bg-sidebar/20">
-                    No se encontraron satélites que coincidan con la búsqueda.
                   </div>
                 )}
               </div>
-            </div>
-          )}
-        </div>
-        <div className="px-5 py-3 border-t border-sidebar-border bg-sidebar/20 text-sidebar-foreground/40">
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="library" className="flex-1 flex flex-col overflow-hidden m-0 p-0">
+            <ScrollArea className="flex-1">
+              <div className="p-4">
+                {selectedArticleId ? (
+                  // Vista de Lector de Artículo
+                  (() => {
+                    const article = ARTICLES.find(a => a.id === selectedArticleId);
+                    if (!article) return null;
+                    return (
+                      <div className="space-y-4">
+                        <Button onClick={() => setSelectedArticleId(null)} variant="link" size="sm"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-sidebar-primary p-0 h-auto cursor-pointer hover:no-underline">
+                          <ChevronLeft size={16} /> Volver a biblioteca
+                        </Button>
+                        <Card className="border-sidebar-border bg-sidebar/20 shadow-sm">
+                          <CardHeader className="p-4 pb-2">
+                            <div>
+                              <Badge variant="outline" className="text-[9px] font-bold text-sidebar-primary uppercase tracking-wider bg-sidebar-primary/10 border-sidebar-primary/20">
+                                {article.category}
+                              </Badge>
+                              <CardTitle className="text-sm font-bold tracking-tight text-sidebar-foreground mt-2">{article.title}</CardTitle>
+                            </div>
+                          </CardHeader>
+                          <Separator className="bg-sidebar-border/30" />
+                          <CardContent className="p-4 pt-4">
+                            {article.content}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  // Listado de Artículos
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Biblioteca Técnica</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Análisis y evolución de las telecomunicaciones satelitales amateur.</p>
+                    </div>
+                    <div className="space-y-2.5">
+                      {ARTICLES.map(article => (
+                        <Card key={article.id} onClick={() => setSelectedArticleId(article.id)}
+                          className="w-full flex items-start gap-3.5 p-3.5 rounded-lg border-sidebar-border/60 bg-sidebar/10 hover:bg-sidebar-accent/50 transition-all text-left cursor-pointer">
+                          <div className="bg-sidebar-primary/10 text-sidebar-primary p-2 rounded-md border border-sidebar-primary/20 shrink-0 mt-0.5 transition-all">
+                            <FileText size={16} />
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="text-[9px] font-bold text-sidebar-primary uppercase tracking-wider">{article.category}</div>
+                            <span className="text-xs font-bold text-sidebar-foreground block leading-tight">{article.title}</span>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="px-5 py-3 border-t border-sidebar-border bg-sidebar/20 text-sidebar-foreground/40 shrink-0">
           <p className="text-[10px] leading-tight font-medium">{config.footerText}</p>
         </div>
       </aside>
@@ -1469,15 +1480,15 @@ export default function App() {
       <div className="relative flex-1 h-full bg-background">
         {!sidebarOpen && (
           <>
-            <button onClick={() => setSidebarOpen(true)}
-              className="absolute top-4 left-4 z-10 bg-background text-foreground border border-input rounded-md shadow-sm p-2 hover:bg-accent hover:text-accent-foreground transition-all cursor-pointer">
+            <Button onClick={() => setSidebarOpen(true)} variant="outline" size="icon"
+              className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm cursor-pointer shadow-sm">
               <Menu size={16} />
-            </button>
-            <div className="absolute top-4 left-14 z-10 bg-background text-foreground border border-input rounded-md shadow-sm flex items-center gap-2 px-3 py-1.5 w-72 focus-within:ring-1 focus-within:ring-ring transition-all">
-              <Search size={14} className="text-muted-foreground" />
-              <input type="text" placeholder="Buscar satélite..."
-                value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground font-medium" />
+            </Button>
+            <div className="absolute top-4 left-14 z-10 flex w-72 shadow-sm relative">
+              <Input type="text" placeholder="Buscar satélite..."
+                value={searchQuery} onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                className="bg-background/80 backdrop-blur-sm text-xs font-medium pl-8 h-9 border-input w-full" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
             </div>
           </>
         )}
@@ -1486,49 +1497,42 @@ export default function App() {
 
         {/* Floating Debug Console */}
         {logs.length > 0 && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 max-w-lg w-full bg-destructive/10 border border-destructive/20 text-destructive-foreground rounded-md p-3.5 shadow-md backdrop-blur-md">
+          <Card className="absolute top-16 left-1/2 -translate-x-1/2 z-30 max-w-lg w-full bg-destructive/10 border-destructive/20 text-destructive-foreground p-3.5 shadow-md backdrop-blur-md">
             <div className="flex items-center justify-between mb-2 border-b border-destructive/20 pb-1">
               <span className="text-xs font-bold text-destructive uppercase tracking-widest">Consola de Depuración</span>
-              <button onClick={() => setLogs([])} className="text-destructive hover:underline text-xs font-semibold cursor-pointer">Limpiar</button>
+              <Button onClick={() => setLogs([])} variant="link" size="sm" className="text-destructive hover:underline text-xs font-semibold p-0 h-auto cursor-pointer">Limpiar</Button>
             </div>
-            <div className="space-y-1 font-mono text-[11px] text-foreground max-h-32 overflow-y-auto">
+            <div className="space-y-1 font-mono text-[11px] text-foreground max-h-32 overflow-y-auto custom-scrollbar">
               {logs.map((log, idx) => (
                 <div key={idx} className="border-b border-border/50 pb-1 last:border-none last:pb-0">{log}</div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Floating Right Actions */}
         <div className="absolute top-4 right-4 z-10 flex gap-2">
-          <button onClick={toggleTheme}
-            className="bg-background text-foreground hover:bg-accent hover:text-accent-foreground rounded-md shadow-sm p-2 border border-input transition-all cursor-pointer"
+          <Button onClick={toggleTheme} variant="outline" size="icon"
+            className="bg-background/80 backdrop-blur-sm cursor-pointer shadow-sm"
             title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
+          </Button>
           {!sidebarOpen && (
-            <button onClick={() => { setSidebarOpen(true); setSelectedSatellite(null); }}
-              className="bg-background text-foreground hover:bg-accent hover:text-accent-foreground rounded-md shadow-sm p-2 border border-input transition-all cursor-pointer"
+            <Button onClick={() => { setSidebarOpen(true); setSelectedSatellite(null); }} variant="outline" size="icon"
+              className="bg-background/80 backdrop-blur-sm cursor-pointer shadow-sm"
               title="Satélites">
               <Globe size={16} />
-            </button>
+            </Button>
           )}
         </div>
 
         {/* Floating Zoom Controls */}
-        <div className="absolute bottom-6 right-4 z-10 flex flex-col bg-background rounded-md shadow-sm overflow-hidden border border-input">
-          <button onClick={() => map.current?.zoomIn()}
-            className="p-2.5 hover:bg-accent text-foreground transition-colors border-b border-input text-foreground/75 hover:text-foreground cursor-pointer"
-            title="Acercar">
+        <div className="absolute bottom-6 right-4 z-10 flex flex-col bg-background/80 backdrop-blur-sm rounded-md shadow-sm border border-input overflow-hidden">
+          <Button onClick={() => map.current?.zoomIn()} variant="ghost" size="icon" className="rounded-none border-b border-input h-9 w-9 cursor-pointer" title="Acercar">
             <ZoomIn size={16} />
-          </button>
-          <button onClick={() => map.current?.zoomOut()}
-            className="p-2.5 hover:bg-accent text-foreground transition-colors text-foreground/75 hover:text-foreground cursor-pointer"
-            title="Alejar">
+          </Button>
+          <Button onClick={() => map.current?.zoomOut()} variant="ghost" size="icon" className="rounded-none h-9 w-9 cursor-pointer" title="Alejar">
             <ZoomOut size={16} />
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
-  );
-}
+     
