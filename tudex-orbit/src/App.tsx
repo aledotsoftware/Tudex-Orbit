@@ -322,8 +322,8 @@ const ARTICLES: Article[] = [
     )
   }
 ];
-const SatelliteIcon = ({ size = 18 }: { size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const SatelliteIcon = ({ size = 18, className = '' }: { size?: number; className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <rect width="4" height="8" x="2" y="12" rx="1"/>
     <rect width="4" height="8" x="18" y="4" rx="1"/>
     <path d="m17 7-3 3"/>
@@ -1121,48 +1121,60 @@ export default function App() {
   // Pantalla de inicio de sesión obligatorio
   if (!isAuthenticated) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden p-4">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none" />
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden p-4 bg-space-grid">
+        {/* Background Ambient Glows & Orbit Rings */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] border border-primary/20 rounded-full animate-radar-pulse pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] border border-primary/15 rounded-full pointer-events-none" />
         
-        <Card className="max-w-md w-full border-sidebar-border bg-card/80 backdrop-blur-md shadow-2xl z-10 relative overflow-hidden">
-          <div className="h-1.5 w-full bg-gradient-to-r from-primary via-blue-500 to-indigo-600" />
+        <Card className="max-w-md w-full border-sidebar-border bg-sidebar/80 backdrop-blur-xl shadow-2xl z-10 relative overflow-hidden scanline-effect cyber-border-glow">
+          <div className="h-1 w-full bg-gradient-to-r from-primary via-cyan-400 to-indigo-500" />
           
           <CardHeader className="text-center pt-8 pb-4 space-y-3">
-            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
-              <SatelliteIcon size={36} />
+            <div className="relative mx-auto w-16 h-16 rounded-2xl bg-primary/15 border border-primary/30 flex items-center justify-center text-primary shadow-inner">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-sm" />
+              <SatelliteIcon size={36} className="relative z-10 cyber-glow" />
             </div>
             
             <div>
-              <CardTitle className="text-2xl font-bold tracking-tight">Tudex Orbit</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">Sistema de Telemetría & Rastreo Satelital</p>
+              <CardTitle className="text-2xl font-bold tracking-tight text-sidebar-foreground cyber-glow">Tudex Orbit</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">Sistema de Telemetría & Rastreación Satelital</p>
             </div>
             
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 mx-auto">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-sidebar-primary border border-primary/25 mx-auto">
               <Lock size={12} />
-              <span>Autenticación Requerida</span>
+              <span>Autenticación OIDC Requerida</span>
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-4 pb-8 px-6 text-center">
+          <CardContent className="space-y-5 pb-8 px-6 text-center">
             {authError && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs text-left flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/25 text-destructive text-xs text-left flex items-start gap-2">
                 <AlertCircle size={16} className="shrink-0 mt-0.5" />
                 <span>{authError}</span>
               </div>
             )}
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              El acceso a esta aplicación está reservado únicamente para usuarios autenticados mediante <strong>Tudex Passport</strong>.
+              El acceso a esta consola orbital está restringido únicamente a usuarios autorizados mediante <strong>Tudex Passport</strong>.
             </p>
 
-            <Button onClick={() => login()} size="lg" className="w-full font-semibold gap-2 cursor-pointer shadow-lg hover:shadow-primary/20 transition-all">
+            <Button onClick={() => login()} size="lg" className="w-full font-semibold gap-2.5 cursor-pointer shadow-lg hover:shadow-primary/30 transition-all hover:scale-[1.01] active:scale-[0.99] bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 h-11 text-xs uppercase tracking-wider">
               <ShieldCheck size={18} />
               <span>Iniciar Sesión con Tudex Passport</span>
             </Button>
 
-            <p className="text-[10px] text-muted-foreground/60 pt-2">
-              Seguridad habilitada con protocolo OAuth 2.0 / OpenID Connect + PKCE
-            </p>
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="p-2 rounded bg-sidebar/30 border border-sidebar-border/40 text-[9px] text-muted-foreground font-mono">
+                OIDC 1.0
+              </div>
+              <div className="p-2 rounded bg-sidebar/30 border border-sidebar-border/40 text-[9px] text-muted-foreground font-mono">
+                PKCE S256
+              </div>
+              <div className="p-2 rounded bg-sidebar/30 border border-sidebar-border/40 text-[9px] text-muted-foreground font-mono">
+                SSL/TLS
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -1198,19 +1210,25 @@ export default function App() {
       `}>
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2.5 flex-1">
-            <div className="bg-sidebar-primary text-sidebar-primary-foreground p-1.5 rounded-md">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="bg-sidebar-primary text-sidebar-primary-foreground p-1.5 rounded-md shadow-sm shrink-0">
               <SatelliteIcon size={18} />
             </div>
-            <span className="text-sm font-semibold tracking-tight text-sidebar-foreground cyber-glow">{config.appName}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-bold tracking-tight text-sidebar-foreground cyber-glow truncate">{config.appName}</span>
+              <Badge variant="outline" className="text-[9px] font-mono bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border-emerald-500/20 px-1.5 py-0 flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                LIVE
+              </Badge>
+            </div>
           </div>
           <Button onClick={toggleTheme} variant="ghost" size="icon"
-            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer mr-1"
+            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer shrink-0"
             title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
             {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           </Button>
           <Button onClick={() => setSidebarOpen(false)} variant="ghost" size="icon"
-            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer">
+            className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer shrink-0">
             <ChevronLeft size={18} />
           </Button>
         </div>
