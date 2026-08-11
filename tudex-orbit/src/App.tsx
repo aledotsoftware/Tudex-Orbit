@@ -5,8 +5,10 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as satellite from 'satellite.js';
 import {
   Search, Menu, ZoomIn, ZoomOut, Compass,
-  MapPin, ChevronLeft, Globe, Sun, Moon, Activity, Wifi, BookOpen, FileText
+  MapPin, ChevronLeft, Globe, Sun, Moon, Activity, Wifi, BookOpen, FileText,
+  LogOut, ShieldCheck, Lock, AlertCircle
 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -333,6 +335,7 @@ const SatelliteIcon = ({ size = 18 }: { size?: number }) => (
 );
 
 export default function App() {
+  const { user, isAuthenticated, isLoading: authLoading, error: authError, login, logout } = useAuth();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   
@@ -1095,7 +1098,78 @@ export default function App() {
   const flyTo = (center: [number, number], zoom = 13) =>
     map.current?.flyTo({ center, zoom, duration: 1200 });
 
-  // Pantalla de carga
+  // Pantalla de carga de autenticación
+  if (authLoading) {
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-background text-foreground transition-colors duration-200">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-12 h-12 bg-primary/20 rounded-full animate-ping" />
+            <div className="text-primary animate-pulse relative z-10">
+              <SatelliteIcon size={40} />
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <span className="text-sm font-semibold tracking-tight">Verificando sesión...</span>
+            <span className="text-xs text-muted-foreground">Conectando con Tudex Passport</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Pantalla de inicio de sesión obligatorio
+  if (!isAuthenticated) {
+    return (
+      <div className="w-screen h-screen flex flex-col items-center justify-center bg-background text-foreground relative overflow-hidden p-4">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none" />
+        
+        <Card className="max-w-md w-full border-sidebar-border bg-card/80 backdrop-blur-md shadow-2xl z-10 relative overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-primary via-blue-500 to-indigo-600" />
+          
+          <CardHeader className="text-center pt-8 pb-4 space-y-3">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
+              <SatelliteIcon size={36} />
+            </div>
+            
+            <div>
+              <CardTitle className="text-2xl font-bold tracking-tight">Tudex Orbit</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">Sistema de Telemetría & Rastreo Satelital</p>
+            </div>
+            
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 mx-auto">
+              <Lock size={12} />
+              <span>Autenticación Requerida</span>
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4 pb-8 px-6 text-center">
+            {authError && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs text-left flex items-start gap-2">
+                <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              El acceso a esta aplicación está reservado únicamente para usuarios autenticados mediante <strong>Tudex Passport</strong>.
+            </p>
+
+            <Button onClick={() => login()} size="lg" className="w-full font-semibold gap-2 cursor-pointer shadow-lg hover:shadow-primary/20 transition-all">
+              <ShieldCheck size={18} />
+              <span>Iniciar Sesión con Tudex Passport</span>
+            </Button>
+
+            <p className="text-[10px] text-muted-foreground/60 pt-2">
+              Seguridad habilitada con protocolo OAuth 2.0 / OpenID Connect + PKCE
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Pantalla de carga de configuración
   if (!config) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-background text-foreground transition-colors duration-200">
@@ -1471,7 +1545,35 @@ export default function App() {
           </TabsContent>
         </Tabs>
         
-        <div className="px-5 py-3 border-t border-sidebar-border bg-sidebar/20 text-sidebar-foreground/40 shrink-0">
+        {/* Profile Card & Logout */}
+        {user && (
+          <div className="px-4 py-2.5 border-t border-sidebar-border bg-sidebar/30 flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-xs shrink-0 overflow-hidden">
+                {user.picture ? (
+                  <img src={user.picture} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (user.name || user.preferred_username || user.username || user.email || 'U').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-semibold text-sidebar-foreground truncate leading-tight">
+                  {user.name || user.preferred_username || user.username || 'Usuario'}
+                </p>
+                <p className="text-[9px] text-muted-foreground truncate leading-tight">
+                  {user.email || 'Tudex Passport'}
+                </p>
+              </div>
+            </div>
+            <Button onClick={logout} variant="ghost" size="icon"
+              className="h-7 w-7 text-sidebar-foreground/60 hover:text-destructive hover:bg-destructive/10 cursor-pointer shrink-0"
+              title="Cerrar Sesión">
+              <LogOut size={14} />
+            </Button>
+          </div>
+        )}
+
+        <div className="px-5 py-2.5 border-t border-sidebar-border bg-sidebar/20 text-sidebar-foreground/40 shrink-0">
           <p className="text-[10px] leading-tight font-medium">{config.footerText}</p>
         </div>
       </aside>
@@ -1511,7 +1613,15 @@ export default function App() {
         )}
 
         {/* Floating Right Actions */}
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          {user && (
+            <div className="hidden sm:flex items-center gap-2 bg-background/80 backdrop-blur-sm px-3 py-1.5 rounded-md border border-input shadow-sm text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-semibold text-foreground truncate max-w-[120px]">
+                {user.name || user.preferred_username || user.username || 'Usuario'}
+              </span>
+            </div>
+          )}
           <Button onClick={toggleTheme} variant="outline" size="icon"
             className="bg-background/80 backdrop-blur-sm cursor-pointer shadow-sm"
             title={theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}>
@@ -1524,6 +1634,11 @@ export default function App() {
               <Globe size={16} />
             </Button>
           )}
+          <Button onClick={logout} variant="outline" size="icon"
+            className="bg-background/80 backdrop-blur-sm cursor-pointer shadow-sm text-destructive hover:text-destructive hover:bg-destructive/10"
+            title="Cerrar Sesión">
+            <LogOut size={16} />
+          </Button>
         </div>
 
         {/* Floating Zoom Controls */}
@@ -1535,4 +1650,7 @@ export default function App() {
             <ZoomOut size={16} />
           </Button>
         </div>
-     
+      </div>
+    </div>
+  );
+}
